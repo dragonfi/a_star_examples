@@ -1,6 +1,7 @@
 import pyglet
 
 from path_search.vec2 import Vec2
+from path_search.a_star import a_star
 
 window = pyglet.window.Window()
 
@@ -17,10 +18,11 @@ def point_to_opengl(point, r = 2):
         point.x + r, point.y - r,
         point.x + r, point.y + r,
     ]
+
     indexes = [0, 1, 2, 1, 2, 3]
     return (indexes, points)
 
-def draw_nodes(points):
+def draw_nodes(points, color = (128, 128, 128, 128)):
     vertices = []
     index = []
     start_index = 0
@@ -30,9 +32,11 @@ def draw_nodes(points):
         index += [i + start_index for i in new_index]
         start_index += len(vs) // 2
 
+    colors = list(color) * (len(vertices) // 2)
+
     pyglet.graphics.draw_indexed(
         len(vertices) // 2, pyglet.gl.GL_TRIANGLES,
-        index, ('v2f', vertices))
+        index, ('v2f', vertices), ('c4B', colors))
 
 
 def draw_edges(points, graph):
@@ -47,14 +51,48 @@ def draw_edges(points, graph):
 
     print(len(vertices), len(index))
 
+    grey = [128, 128, 128, 128]
+    colors = grey * len(points)
+
     pyglet.graphics.draw_indexed(
         len(vertices) // 2, pyglet.gl.GL_LINES,
-        index, ('v2f', vertices))
+        index, ('v2f', vertices), ('c4B', colors))
+
+def duplicate_middle(seq):
+    result = [seq[0]]
+    for item in seq[1:-1]:
+        result.append(item)
+        result.append(item)
+    result.append(seq[-1])
+    print(result)
+    return result
+
+def draw_path(points, path):
+    vertices = []
+    for point in points:
+        vertices += [point.x, point.y]
+
+    orange = [255, 255, 0, 0]
+    colors = orange * len(points)
+
+    index = duplicate_middle(path.path)
+
+    pyglet.graphics.draw_indexed(
+        len(vertices) // 2, pyglet.gl.GL_LINES,
+        index, ('v2f', vertices), ('c4B', colors))
+
+    highlighted_points = [point for (index, point) in enumerate(points) if index in path.path]
+    draw_nodes(highlighted_points, color = orange)
+
 
 from path_search.points import random_euclidean_points, connect_points
 
 POINTS = random_euclidean_points(1000, Vec2(50, 50), Vec2(590, 430))
 GRAPH = connect_points(POINTS, 20)
+START, STOP = 100, 200
+PATH = a_star(GRAPH, START, STOP)
+print(PATH)
+
 
 @window.event
 def on_draw():
@@ -83,5 +121,10 @@ def on_draw():
 
     draw_nodes(POINTS)
     draw_edges(POINTS, GRAPH)
+    draw_nodes([POINTS[START], POINTS[STOP]], color = (255, 255, 0, 0))
+    if PATH:
+        draw_path(POINTS, PATH)
+
+
 
 pyglet.app.run()
