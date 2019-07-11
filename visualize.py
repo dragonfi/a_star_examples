@@ -3,7 +3,7 @@ import pyglet
 from path_search.vec2 import Vec2
 from path_search.a_star import a_star_with_metadata
 
-window = pyglet.window.Window()
+window = pyglet.window.Window(width=800, height=600, resizable=True)
 
 label = pyglet.text.Label('Hello, world',
                           font_name='Times New Roman',
@@ -11,7 +11,8 @@ label = pyglet.text.Label('Hello, world',
                           x=window.width//2, y=window.height//2,
                           anchor_x='center', anchor_y='center')
 
-def point_to_opengl(point, r = 2):
+def point_to_opengl(point):
+    r = POINT_SIZE
     points = [
         point.x - r, point.y - r,
         point.x - r, point.y + r,
@@ -88,8 +89,15 @@ def draw_path(points, path):
 from path_search.points import random_euclidean_points, connect_points
 
 def generate_graph():
-    points = random_euclidean_points(1000, Vec2(50, 50), Vec2(590, 430))
-    graph = connect_points(points, 20)
+    global POINT_SIZE
+    w = window.width
+    h = window.height
+    size = min(w, h)
+    threshold = 0.036 * size
+    POINT_SIZE = 0.005 * size
+
+    points = random_euclidean_points(1000, Vec2(50, 50), Vec2(size - 50, size - 50))
+    graph = connect_points(points, threshold)
     return points, graph
 
 def find_path(heuristic):
@@ -99,10 +107,12 @@ def find_path(heuristic):
 POINTS, GRAPH = generate_graph()
 START, STOP = 100, 200
 
-HEURISTIC = lambda node: (POINTS[node] - POINTS[STOP]).abs()
-USING_HEURISTIC = False
+POINT_SIZE = 2
 
-PATH, EXPLORED, CANDIDATES = find_path(lambda _: 0)
+HEURISTIC = lambda node: (POINTS[node] - POINTS[STOP]).abs()
+USING_HEURISTIC = True
+
+PATH, EXPLORED, CANDIDATES = find_path(HEURISTIC)
 
 
 @window.event
@@ -144,8 +154,15 @@ def on_draw():
     if PATH:
         draw_path(POINTS, PATH)
 
-    draw_nodes([POINTS[START]], color = (0, 255, 0, 0))
-    draw_nodes([POINTS[STOP]], color = (255, 0, 0, 0))
+    draw_nodes([POINTS[START]], color = (255, 0, 0, 0))
+    draw_nodes([POINTS[STOP]], color = (0, 255, 0, 0))
+
+@window.event
+def on_resize(width, height):
+    generate_new_graph()
+    global USING_HEURISTIC
+    USING_HEURISTIC = not USING_HEURISTIC
+    change_heuristic()
 
 from pyglet.window import key
 
