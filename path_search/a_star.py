@@ -6,6 +6,10 @@ from .vec2 import Vec2
 Path = namedtuple("Path", "weight path")
 
 def a_star(graph, start, target, heuristic = lambda _: 0):
+    (path, explored, candidates) = a_star_with_metadata(graph, start, target, heuristic)
+    return path
+
+def a_star_with_metadata(graph, start, target, heuristic = lambda _: 0):
     if start == target:
         return Path(start, 0, [start])
 
@@ -16,8 +20,7 @@ def a_star(graph, start, target, heuristic = lambda _: 0):
         candidates = OrderedDict(sorted(candidates.items(), key=lambda item: item[1].weight + heuristic(item[0])))
         node, path = candidates.popitem(last=False)
         if node == target:
-            print(len(explored), len(candidates))
-            return path
+            return (path, explored, candidates)
         if node in explored.keys() and explored[node].weight <= path.weight:
             pass
         else:
@@ -33,5 +36,4 @@ def a_star(graph, start, target, heuristic = lambda _: 0):
                 pass
             else:
                 candidates[key] = value
-    print(len(explored), len(candidates))
-    return None
+    return (None, explored, candidates)
