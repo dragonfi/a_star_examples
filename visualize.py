@@ -90,10 +90,14 @@ from path_search.points import random_euclidean_points, connect_points
 POINTS = random_euclidean_points(1000, Vec2(50, 50), Vec2(590, 430))
 GRAPH = connect_points(POINTS, 20)
 START, STOP = 100, 200
-(PATH2, EXPLORED2, CANDIDATES2) = a_star_with_metadata(GRAPH, START, STOP)
+
 HEURISTIC = lambda node: (POINTS[node] - POINTS[STOP]).abs()
-(PATH, EXPLORED, CANDIDATES) = a_star_with_metadata(GRAPH, START, STOP, heuristic=HEURISTIC)
-print(PATH)
+USING_HEURISTIC = False
+
+def find_path(heuristic):
+    return a_star_with_metadata(GRAPH, START, STOP, heuristic)
+
+PATH, EXPLORED, CANDIDATES = find_path(lambda _: 0)
 
 
 @window.event
@@ -137,6 +141,20 @@ def on_draw():
 
     draw_nodes([POINTS[START]], color = (255, 255, 255, 0))
     draw_nodes([POINTS[STOP]], color = (255, 255, 0, 0))
+
+from pyglet.window import key
+
+@window.event
+def on_key_press(symbol, modifiers):
+    global PATH, EXPLORED, CANDIDATES, USING_HEURISTIC
+    if symbol == key.SPACE:
+        if USING_HEURISTIC:
+            USING_HEURISTIC = False
+            PATH, EXPLORED, CANDIDATES = find_path(lambda _: 0)
+        else:
+            USING_HEURISTIC = True
+            PATH, EXPLORED, CANDIDATES = find_path(heuristic=HEURISTIC)
+    print(len(EXPLORED), len(CANDIDATES), PATH, USING_HEURISTIC)
 
 
 pyglet.app.run()
