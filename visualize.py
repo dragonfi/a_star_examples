@@ -171,7 +171,8 @@ def on_key_press(symbol, modifiers):
         generate_new_graph()
         USING_HEURISTIC = not USING_HEURISTIC
         change_heuristic()
-
+    if symbol == key.ESCAPE:
+        pyglet.app.exit()
 
     print(len(EXPLORED), len(CANDIDATES), PATH, USING_HEURISTIC)
 
