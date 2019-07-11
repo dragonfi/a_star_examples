@@ -87,15 +87,20 @@ def draw_path(points, path):
 
 from path_search.points import random_euclidean_points, connect_points
 
-POINTS = random_euclidean_points(1000, Vec2(50, 50), Vec2(590, 430))
-GRAPH = connect_points(POINTS, 20)
+def generate_graph():
+    points = random_euclidean_points(1000, Vec2(50, 50), Vec2(590, 430))
+    graph = connect_points(points, 20)
+    return points, graph
+
+def find_path(heuristic):
+    return a_star_with_metadata(GRAPH, START, STOP, heuristic)
+
+
+POINTS, GRAPH = generate_graph()
 START, STOP = 100, 200
 
 HEURISTIC = lambda node: (POINTS[node] - POINTS[STOP]).abs()
 USING_HEURISTIC = False
-
-def find_path(heuristic):
-    return a_star_with_metadata(GRAPH, START, STOP, heuristic)
 
 PATH, EXPLORED, CANDIDATES = find_path(lambda _: 0)
 
@@ -139,21 +144,35 @@ def on_draw():
     if PATH:
         draw_path(POINTS, PATH)
 
-    draw_nodes([POINTS[START]], color = (255, 255, 255, 0))
-    draw_nodes([POINTS[STOP]], color = (255, 255, 0, 0))
+    draw_nodes([POINTS[START]], color = (0, 255, 0, 0))
+    draw_nodes([POINTS[STOP]], color = (255, 0, 0, 0))
 
 from pyglet.window import key
 
+def generate_new_graph():
+    global POINTS, GRAPH
+    POINTS, GRAPH = generate_graph()
+
+def change_heuristic():
+    global PATH, EXPLORED, CANDIDATES, USING_HEURISTIC
+    if USING_HEURISTIC:
+        USING_HEURISTIC = False
+        PATH, EXPLORED, CANDIDATES = find_path(lambda _: 0)
+    else:
+        USING_HEURISTIC = True
+        PATH, EXPLORED, CANDIDATES = find_path(heuristic=HEURISTIC)
+
 @window.event
 def on_key_press(symbol, modifiers):
-    global PATH, EXPLORED, CANDIDATES, USING_HEURISTIC
+    global USING_HEURISTIC
     if symbol == key.SPACE:
-        if USING_HEURISTIC:
-            USING_HEURISTIC = False
-            PATH, EXPLORED, CANDIDATES = find_path(lambda _: 0)
-        else:
-            USING_HEURISTIC = True
-            PATH, EXPLORED, CANDIDATES = find_path(heuristic=HEURISTIC)
+        change_heuristic()
+    if symbol == key.R:
+        generate_new_graph()
+        USING_HEURISTIC = not USING_HEURISTIC
+        change_heuristic()
+
+
     print(len(EXPLORED), len(CANDIDATES), PATH, USING_HEURISTIC)
 
 
