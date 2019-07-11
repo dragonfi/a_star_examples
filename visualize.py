@@ -1,7 +1,7 @@
 import pyglet
 
 from path_search.vec2 import Vec2
-from path_search.a_star import a_star
+from path_search.a_star import a_star_with_metadata
 
 window = pyglet.window.Window()
 
@@ -90,7 +90,9 @@ from path_search.points import random_euclidean_points, connect_points
 POINTS = random_euclidean_points(1000, Vec2(50, 50), Vec2(590, 430))
 GRAPH = connect_points(POINTS, 20)
 START, STOP = 100, 200
-PATH = a_star(GRAPH, START, STOP)
+(PATH2, EXPLORED2, CANDIDATES2) = a_star_with_metadata(GRAPH, START, STOP)
+HEURISTIC = lambda node: (POINTS[node] - POINTS[STOP]).abs()
+(PATH, EXPLORED, CANDIDATES) = a_star_with_metadata(GRAPH, START, STOP, heuristic=HEURISTIC)
 print(PATH)
 
 
@@ -121,10 +123,20 @@ def on_draw():
 
     draw_nodes(POINTS)
     draw_edges(POINTS, GRAPH)
-    draw_nodes([POINTS[START], POINTS[STOP]], color = (255, 255, 0, 0))
+
+    #draw_nodes([point for (index, point) in enumerate(POINTS) if index in EXPLORED2], color = (128, 0, 128, 0))
+    #draw_nodes([point for (index, point) in enumerate(POINTS) if index in CANDIDATES2], color = (0, 128, 128, 0))
+
+    #if PATH2:
+    #    draw_path(POINTS, PATH2)
+
+    draw_nodes([point for (index, point) in enumerate(POINTS) if index in EXPLORED], color = (128, 0, 128, 0))
+    draw_nodes([point for (index, point) in enumerate(POINTS) if index in CANDIDATES], color = (0, 128, 128, 0))
     if PATH:
         draw_path(POINTS, PATH)
 
+    draw_nodes([POINTS[START]], color = (255, 255, 255, 0))
+    draw_nodes([POINTS[STOP]], color = (255, 255, 0, 0))
 
 
 pyglet.app.run()
