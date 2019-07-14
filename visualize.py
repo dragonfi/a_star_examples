@@ -1,9 +1,9 @@
 import pyglet
 
-from path_search4.vec2 import Vec2, euclidean_distance
-from path_search4.a_star import AStar
-from path_search4.points import random_euclidean_points, connect_points
-from path_search4.graph import Graph
+from path_search.vec2 import Vec2, euclidean_distance
+from path_search.a_star import AStar
+from path_search.points import random_euclidean_points, connect_points
+from path_search.graph import Graph
 
 window = pyglet.window.Window(width=800, height=600, resizable=True)
 
