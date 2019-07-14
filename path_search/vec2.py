@@ -10,7 +10,7 @@ class Vec2(NamedTuple):
     x: float
     y: float
 
-    def __add__(self, other) -> "Vec2": #Note: conflicts with NamedTuple __add__
+    def __add__(self, other) -> "Vec2":  # Note: conflicts with NamedTuple __add__
         return Vec2(self.x + other.x, self.y + other.y)
 
     def __sub__(self, other: "Vec2") -> "Vec2":
