@@ -1,13 +1,5 @@
 from typing import *
 
-"""
-S: Single Responsibility
-O: Open Closed
-L: Liskov Substitution
-I: Interface Segregation
-D: Dependency Inversion
-"""
-
 Data = TypeVar('Data')
 
 class _Node:
