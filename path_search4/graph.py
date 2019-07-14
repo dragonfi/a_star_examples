@@ -3,14 +3,17 @@ from typing import *
 Data = TypeVar("Data")
 NodeId = Hashable
 
+
 class Edge(NamedTuple):
     source: Hashable
     dest: Hashable
     weight: float
 
+
 class Node(NamedTuple):
     key: Hashable
     data: Any
+
 
 class Graph(Generic[Data]):
     """

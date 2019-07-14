@@ -6,6 +6,7 @@ from .graph import Graph
 Data = TypeVar("Data")
 NodeId = Hashable
 
+
 class Path(NamedTuple):
     weight: float
     nodes: List[NodeId]
@@ -24,6 +25,7 @@ class AStarResult(NamedTuple):
     explored: Mapping[NodeId, Path]
     candidates: Mapping[NodeId, Path]
 
+
 class AStar(Generic[Data]):
     def __init__(self, graph: Graph[Data], heuristic: Callable[[Data, Data], float]) -> None:
         self._graph = graph
@@ -39,33 +41,23 @@ class AStar(Generic[Data]):
             dest_data = self._graph.get_node_data(dest)
             return path.weight + self._heuristic(node_data, dest_data)
 
-        if source == dest:
-            return AStarResult(Path(0, [source]), {}, {})
-
         explored: Dict[NodeId, Path] = {}
-
-        source_edges = self._graph.edges_from(source)
-        candidates: Dict[NodeId, Path] = OrderedDict(
-            {source: Path(edge.weight, [source, edge.dest]) for edge in source_edges}
-        )
+        candidates: Dict[NodeId, Path] = OrderedDict({source: Path(0, [source])})
 
         while candidates:
-            candidates = OrderedDict(sorted(candidates.items(), key = candidate_sorting_key))
+            candidates = OrderedDict(sorted(candidates.items(), key=candidate_sorting_key))
             node, path = candidates.popitem(last=False)
             if node == dest:
                 return AStarResult(path, explored, candidates)
-            if node in explored.keys() and explored[node].weight <= path.weight:
-                pass
-            else:
+            if node not in explored.keys() or explored[node].weight > path.weight:
                 explored[node] = path
+
             new_candidates = {
                 edge.dest: Path(path.weight + edge.weight, path.nodes + [edge.dest])
                 for edge in self._graph.edges_from(node)
                 if edge.dest not in explored.keys()}
 
             for key, value in new_candidates.items():
-                if key in candidates.keys() and candidates[key].weight <= value.weight:
-                    pass
-                else:
+                if key not in candidates.keys() or candidates[key].weight > value.weight:
                     candidates[key] = value
         return AStarResult(None, explored, candidates)
