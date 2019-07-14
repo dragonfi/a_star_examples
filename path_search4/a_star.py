@@ -1,13 +1,14 @@
 from typing import *
 from collections import OrderedDict
 
-from .graph import Graph, _Node
+from .graph import Graph
 
-Data = Any
+Data = TypeVar("Data")
+NodeId = Hashable
 
 class Path(NamedTuple):
     weight: float
-    nodes: Sequence
+    nodes: List[NodeId]
 
     @property
     def dest(self):
@@ -20,32 +21,32 @@ class Path(NamedTuple):
 
 class AStarResult(NamedTuple):
     path: Path
-    explored: Sequence[_Node]
-    candidates: Sequence[_Node]
+    explored: Mapping[NodeId, Path]
+    candidates: Mapping[NodeId, Path]
 
-class AStar:
-    def __init__(self, graph: Graph[Data], heuristic) -> None:
+class AStar(Generic[Data]):
+    def __init__(self, graph: Graph[Data], heuristic: Callable[[Data, Data], float]) -> None:
         self._graph = graph
         self._heuristic = heuristic
 
-    def shortest_path(self, source: Data, dest: Data) -> Path:
+    def shortest_path(self, source: NodeId, dest: NodeId) -> Path:
         return self.shortest_path_with_metadata(source, dest).path
 
-    def shortest_path_with_metadata(self, source: Data, dest: Data) -> AStarResult:
-        def candidate_sorting_key(candidate: Tuple[Data, Path]) -> float:
+    def shortest_path_with_metadata(self, source: NodeId, dest: NodeId) -> AStarResult:
+        def candidate_sorting_key(candidate: Tuple[NodeId, Path]) -> float:
             node, path = candidate
             node_data = self._graph.get_node_data(node)
             dest_data = self._graph.get_node_data(dest)
             return path.weight + self._heuristic(node_data, dest_data)
 
         if source == dest:
-            return AStarResult(Path(0, [source]), [], [])
+            return AStarResult(Path(0, [source]), {}, {})
 
-        explored: Any = {}
+        explored: Dict[NodeId, Path] = {}
 
         source_edges = self._graph.edges_from(source)
-        candidates: Any = OrderedDict(
-            {edge.dest: Path(edge.weight, [source, edge.dest]) for edge in source_edges}
+        candidates: Dict[NodeId, Path] = OrderedDict(
+            {source: Path(edge.weight, [source, edge.dest]) for edge in source_edges}
         )
 
         while candidates:
