@@ -50,3 +50,4 @@ pathing = AStar(
     lambda data1, data2: euclidean_distance(data1.position, data2.position))
 
 print(pathing.shortest_path_with_metadata("Alpha Centauri", "Deneb"))
+print(pathing.shortest_path_with_metadata("Sol", "Sol"))
