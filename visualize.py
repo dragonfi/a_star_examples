@@ -52,7 +52,7 @@ class GlobalState:
             self.draw_path(self.path)
 
         self.draw_nodes([self.start], color = (255, 0, 0, 0))
-        self.draw_nodes([self.start], color = (0, 255, 0, 0))
+        self.draw_nodes([self.end], color = (0, 255, 0, 0))
 
     def point_to_opengl(self, point):
         r = self.point_size
