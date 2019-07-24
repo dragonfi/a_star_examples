@@ -1,5 +1,6 @@
 *.pyc
 .mypy_cache
+.vscode
 
 profile.png
 profile.stats
