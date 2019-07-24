@@ -231,6 +231,141 @@ Graph<size_t, Vec2> connectPoints(const std::vector<Vec2>& points, double thresh
     return graph;
 }
 
+template<class Key, class Index>
+class IndexKeyMapper {
+    std::map<Key, Index> keyToIndex;
+    std::map<Index, Key> indexToKey;
+    void addKeyToIndex(Key key, Index index) {
+        keyToIndex[key] = index;
+        indexToKey[index] = key;
+    }
+    Key getKey(Index index) {
+        return indexToKey[index];
+    }
+
+    Index getIndex(Key key) {
+        return keyToIndex[key];
+    }
+};
+
+using Index = size_t;
+
+struct RawEdge {
+    Index dest;
+    Weight weight;
+};
+
+class RawGraph {
+public:
+    RawGraph(std::vector<Vec2> nodes): nodes(nodes) {
+        edges.resize(nodes.size(), {});
+    }
+    void addEdge(Edge<Index> edge) {
+        edges[edge.source].push_back(RawEdge{edge.dest, edge.weight});
+    }
+    std::vector<RawEdge> edgesFrom(Index node) const {
+        return edges[node];
+    }
+    Weight distance(Index node1, Index node2) const {
+        return euclidean_distance(nodes[node1], nodes[node2]);
+    }
+    size_t nodeCount() {
+        return nodes.size();
+    };
+private:
+    std::vector<std::vector<RawEdge>> edges;
+    std::vector<Vec2> nodes;
+
+};
+
+class RawAStar {
+    using Index = size_t;
+    using Candidate = std::pair<Index, Path<Index>>;
+public:
+    RawAStar(RawGraph graph): graph(graph) {};
+
+    Path<Index> shortest_path(Index source, Index dest) {
+        std::vector<std::pair<bool, Path<Index>>> explored(graph.nodeCount(), {false, {MAXFLOAT, {}}});
+        std::vector<Candidate> candidates;
+        candidates.push_back({source, {0, {source}}});
+
+        while (!candidates.empty()) {
+            sortAndPruneCandidates(candidates, dest);
+            //std::cout << candidates << std::endl;
+            //std::cout << candidates.size() << std::endl;
+            Candidate candidate = candidates.back();
+            candidates.pop_back();
+            Index node = candidate.first;
+            Path<Index> path = candidate.second;
+            if (node == dest) {
+                return path;
+            }
+            if (explored[node].first || explored[node].second.weight > path.weight) {
+                explored[node] = {true, path};
+            }
+            //std::cout << graph.edgesFrom(node).size() << std::endl;
+            for(const auto& edge: graph.edgesFrom(node)) {
+                if (explored[edge.dest].first) {
+                    continue;
+                }
+                std::vector<Index> new_nodes = path.nodes;
+                new_nodes.push_back(edge.dest);
+                candidates.push_back({edge.dest, {path.weight + edge.weight, new_nodes}});
+            }
+        }
+        return {0, {}};
+    }
+private:
+    RawGraph graph;
+
+    struct FirstIsLargerWithDistance {
+        const RawGraph& graph;
+        Index dest;
+
+        bool operator()(const Candidate& c1, const Candidate& c2)
+        {
+            Weight c1Weight = c1.second.weight + graph.distance(c1.first, dest);
+            Weight c2Weight = c2.second.weight + graph.distance(c2.first, dest);
+            //std::cout << c1.first << " " << c2.first << " " << c1Weight << " " << c2Weight << std::endl;
+            return c1Weight > c2Weight;
+        }
+    };
+
+    void sortAndPruneCandidates(std::vector<Candidate>& candidates, Index dest) {
+        auto cmp = FirstIsLargerWithDistance{graph, dest};
+        std::sort(candidates.begin(), candidates.end(), cmp);
+
+        std::vector<bool> visitedNodes(graph.nodeCount(), false);
+
+        auto iter = candidates.begin();
+        while(iter != candidates.end()) {
+            if (visitedNodes[iter->first]) {
+                iter = candidates.erase(iter);
+            } else {
+                visitedNodes[iter->first] = iter->second.weight;
+                ++iter;
+            }
+        }
+    }
+};
+
+RawGraph connectPoints2(const std::vector<Vec2>& points, double threshold) {
+    RawGraph graph(points);
+
+    for(size_t i = 0; i < points.size(); ++i) {
+        for(size_t j = 0; j < points.size(); ++j) {
+            double distance = euclidean_distance(points[i], points[j]);
+            if (distance == 0) {
+                continue;
+            }
+            if (distance < threshold) {
+                graph.addEdge(Edge<size_t>{i, j, distance});
+            }
+        }
+    }
+    return graph;
+}
+
 int main() {
     Graph<std::string, Vec2> g;
     g.addNode("A", {0, 4});
@@ -249,7 +384,7 @@ int main() {
     AStar<std::string, Vec2> a(euclidean_distance);
     std::cout << a.shortest_path(g, "C", "B") << std::endl;
 
-    auto points = randomPoints(1000, {0, 0}, {100, 100});
+    /* auto points = randomPoints(1000, {0, 0}, {100, 100});
     auto graph = connectPoints(points, 5);
     AStar<size_t, Vec2> aStar(euclidean_distance);
     std::cout << aStar.shortest_path(graph, 700, 500) << std::endl;
@@ -258,6 +393,16 @@ int main() {
         std::cout << j << " ";
         auto path = aStar.shortest_path(graph, 0, j);
         std::cout << path.nodes.size() << std::endl;
+    }*/
+
+    auto points = randomPoints(1000, {0, 0}, {100, 100});
+    auto graph = connectPoints2(points, 5);
+    RawAStar aStar(graph);
+    std::cout << aStar.shortest_path(700, 500) << std::endl;
+    for(int j = 0; j < points.size(); j++) {
+        std::cout << j << " ";
+        auto path = aStar.shortest_path(0, j);
+        std::cout << path.nodes.size() << std::endl;
     }
 
     size_t sum = 0;
@@ -265,6 +410,8 @@ int main() {
         sum += graph.edgesFrom(i).size();
     }
     std::cout << points.size() << " " << sum << std::endl;
+
+
     return 0;
 }
 
