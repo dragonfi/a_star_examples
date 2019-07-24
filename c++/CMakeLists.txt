@@ -15,4 +15,7 @@ add_executable(AStar main.cpp)
 #add_executable (helloDemo demo.cxx demo_b.cxx)
 #target_link_libraries (helloDemo LINK_PUBLIC Hello)
 
-add_definitions(-Wfatal-errors)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
+add_definitions(-Wfatal-errors -pg)

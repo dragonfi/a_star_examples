@@ -254,7 +254,7 @@ int main() {
     AStar<size_t, Vec2> aStar(euclidean_distance);
     std::cout << aStar.shortest_path(graph, 700, 500) << std::endl;
 
-    for(int j = 0; j < points.size(); j++) {
+    for(int j = 0; j < points.size() && j < 10; j++) {
         std::cout << j << " ";
         auto path = aStar.shortest_path(graph, 0, j);
         std::cout << path.nodes.size() << std::endl;
