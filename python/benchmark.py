@@ -14,3 +14,5 @@ for i in range(1000):
     print(i, end=" ")
     path, explored, candidates = pathing.shortest_path_with_metadata(start, points[i])
     print(len(path.nodes) if path else 0)
+
+print(len(graph.nodes), len(graph.edges))

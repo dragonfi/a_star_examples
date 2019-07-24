@@ -259,6 +259,12 @@ int main() {
         auto path = aStar.shortest_path(graph, 0, j);
         std::cout << path.nodes.size() << std::endl;
     }
+
+    size_t sum = 0;
+    for(int i = 0; i < points.size(); i++) {
+        sum += graph.edgesFrom(i).size();
+    }
+    std::cout << points.size() << " " << sum << std::endl;
     return 0;
 }
 
