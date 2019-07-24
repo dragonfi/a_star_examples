@@ -7,6 +7,7 @@
 #include<algorithm>
 #include<cmath>
 #include<functional>
+#include<cstdlib>
 
 template<class T>
 std::ostream& operator<<(std::ostream& out, const std::vector<T>& v) {
@@ -71,7 +72,9 @@ public:
     
     void addEdge(const Key& k1, const Key& k2, const Weight& weight) {
         if(edges.find(k1) == edges.end() || edges.find(k2) == edges.end()) {
-            throw std::invalid_argument("Some of the following keys are invalid: " + k1 + ", " + k2);
+            std::stringstream s;
+            s << "Some of the following keys are invalid: " << k1 << ", " << k2;
+            throw std::invalid_argument(s.str());
         }
         edges[k1].push_back({k1, k2, weight});
     }
@@ -122,7 +125,7 @@ public:
 
         while (!candidates.empty()) {
             sortAndPruneCandidates(candidates, graph, dest);
-            std::cout << candidates << std::endl;
+            //std::cout << candidates << std::endl;
             Candidate candidate = candidates.back();
             candidates.pop_back();
             Key node = candidate.first;
@@ -197,6 +200,37 @@ Weight euclidean_distance(Vec2 v1, Vec2 v2) {
     return sqrt(dx * dx + dy * dy);
 }
 
+double randomDouble(double min, double max) {
+    return min + max * (rand() / static_cast<double>(RAND_MAX));
+}
+
+std::vector<Vec2> randomPoints(size_t count, Vec2 min, Vec2 max) {
+    std::vector<Vec2> points;
+    for(size_t i = 0; i < count; ++i) {
+        points.push_back({randomDouble(min.x, max.x), randomDouble(min.y, max.y)});
+    }
+    return points;
+}
+
+Graph<size_t, Vec2> connectPoints(const std::vector<Vec2>& points, double threshold) {
+    Graph<size_t, Vec2> graph;
+    for(size_t i = 0; i < points.size(); ++i) {
+        graph.addNode(i, points[i]);
+    }
+    for(size_t i = 0; i < points.size(); ++i) {
+        for(size_t j = 0; j < points.size(); ++j) {
+            double distance = euclidean_distance(points[i], points[j]);
+            if (distance == 0) {
+                continue;
+            }
+            if (distance < threshold) {
+                graph.addEdge(i, j, distance);
+            }
+        }
+    }
+    return graph;
+}
+
 int main() {
     Graph<std::string, Vec2> g;
     g.addNode("A", {0, 4});
@@ -214,6 +248,17 @@ int main() {
     std::cout << g.reprEdges() << std::endl;
     AStar<std::string, Vec2> a(euclidean_distance);
     std::cout << a.shortest_path(g, "C", "B") << std::endl;
+
+    auto points = randomPoints(1000, {0, 0}, {100, 100});
+    auto graph = connectPoints(points, 5);
+    AStar<size_t, Vec2> aStar(euclidean_distance);
+    std::cout << aStar.shortest_path(graph, 700, 500) << std::endl;
+
+    for(int j = 0; j < points.size(); j++) {
+        std::cout << j << " ";
+        auto path = aStar.shortest_path(graph, 0, j);
+        std::cout << path.nodes.size() << std::endl;
+    }
     return 0;
 }
 
