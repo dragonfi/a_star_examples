@@ -1,0 +1,24 @@
+Without -O3
+
+real	0m26,163s
+user	0m26,159s
+sys	0m0,004s
+
+With -O3
+
+real	0m0,371s
+user	0m0,371s
+sys	0m0,000s
+
+Python
+
+real	0m9,328s
+user	0m9,299s
+sys	0m0,028s
+
+PyPy (no type hints yet)
+
+real	0m2,920s
+user	0m2,851s
+sys	0m0,056s
+
