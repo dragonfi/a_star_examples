@@ -68,7 +68,9 @@ class Graph {
 public:
     void addNode(const Key& k, const Data& d) {
         if (edges.find(k) != edges.end()) {
-            throw std::invalid_argument("Key already exists:" + k);
+            std::stringstream msg("Key already exists: ");
+            msg << k;
+            throw std::invalid_argument(msg.str());
         };
         edges[k] = {};
         keyToData[k] = d;
