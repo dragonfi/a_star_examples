@@ -60,14 +60,14 @@ Weight euclidean_distance(Vec2 v1, Vec2 v2) {
     return sqrt(dx * dx + dy * dy);
 }
 
-struct RawEdge {
-    Index dest;
-    Weight weight;
-};
-
-class RawGraph {
+class IndexedGraph {
+private:
+    struct RawEdge {
+        Index dest;
+        Weight weight;
+    };
 public:
-    RawGraph(std::vector<Vec2> nodes): nodes(nodes) {
+    IndexedGraph(std::vector<Vec2> nodes): nodes(nodes) {
         edges.resize(nodes.size(), {});
     }
     void addEdge(Edge<Index> edge) {
@@ -88,11 +88,11 @@ private:
 
 };
 
-class RawAStar {
+class AStar {
     using Index = size_t;
     using Candidate = std::pair<Index, Path<Index>>;
 public:
-    RawAStar(RawGraph graph): graph(graph) {};
+    AStar(IndexedGraph graph): graph(graph) {};
 
     Path<Index> shortest_path(Index source, Index dest) {
         std::vector<std::pair<bool, Path<Index>>> explored(graph.nodeCount(), {false, {MAXFLOAT, {}}});
@@ -126,10 +126,10 @@ public:
         return {0, {}};
     }
 private:
-    RawGraph graph;
+    IndexedGraph graph;
 
     struct FirstIsLargerWithDistance {
-        const RawGraph& graph;
+        const IndexedGraph& graph;
         Index dest;
 
         bool operator()(const Candidate& c1, const Candidate& c2)
@@ -171,8 +171,8 @@ std::vector<Vec2> randomPoints(size_t count, Vec2 min, Vec2 max) {
     return points;
 }
 
-RawGraph connectPoints(const std::vector<Vec2>& points, double threshold) {
-    RawGraph graph(points);
+IndexedGraph connectPointsWithinThreshold(const std::vector<Vec2>& points, double threshold) {
+    IndexedGraph graph(points);
 
     for(size_t i = 0; i < points.size(); ++i) {
         for(size_t j = 0; j < points.size(); ++j) {
@@ -190,13 +190,13 @@ RawGraph connectPoints(const std::vector<Vec2>& points, double threshold) {
 
 int main() {
     auto points = randomPoints(1000, {0, 0}, {100, 100});
-    auto graph = connectPoints(points, 5);
-    RawAStar aStar(graph);
+    auto graph = connectPointsWithinThreshold(points, 5);
+    AStar aStar(graph);
     std::cout << aStar.shortest_path(700, 500) << std::endl;
     for(size_t j = 0; j < points.size(); j++) {
-        std::cout << j << " ";
+        //std::cout << j << " ";
         auto path = aStar.shortest_path(0, j);
-        std::cout << path.nodes.size() << std::endl;
+        //std::cout << path.nodes.size() << std::endl;
     }
 
     size_t sum = 0;
