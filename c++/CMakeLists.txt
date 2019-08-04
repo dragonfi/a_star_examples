@@ -6,7 +6,7 @@ file(GLOB_RECURSE sources CONFIGURE_DEPENDS "src/*.cpp")
 
 add_executable(AStar src/main.cpp ${sources})
 
-SET(CMAKE_CXX_COMPILER "clang++")
+SET(CMAKE_CXX_COMPILER "g++")
 
 SET(profile_flags "-pg")
 SET(optimization_flags "-O3")
