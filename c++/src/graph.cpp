@@ -25,5 +25,5 @@ namespace pathing {
     }
     size_t IndexedGraph::nodeCount() const {
         return nodes.size();
-    };
+    }
 }

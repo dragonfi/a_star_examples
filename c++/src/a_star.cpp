@@ -25,7 +25,7 @@ namespace pathing {
         }
     };
 
-    AStar::AStar(IndexedGraph graph): graph(graph) {};
+    AStar::AStar(IndexedGraph graph): graph(graph) {}
 
     Path AStar::shortest_path(Index source, Index dest) {
         std::vector<std::pair<bool, Path>> explored(graph.nodeCount(), {false, {MAXFLOAT, {}}});
