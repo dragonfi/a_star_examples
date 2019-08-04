@@ -1,5 +1,6 @@
 #include <cmath>
 #include <vector>
+
 #include "randomPoints.hpp"
 
 namespace pathing {

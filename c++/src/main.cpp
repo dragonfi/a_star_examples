@@ -3,8 +3,8 @@
 #include <iostream>
 #include <algorithm>
 
-#include "randomPoints.hpp"
-#include "a_star.hpp"
+#include "pathing/randomPoints.hpp"
+#include "pathing/a_star.hpp"
 
 int main() {
     auto points = pathing::randomPoints(1000, {0, 0}, {100, 100});

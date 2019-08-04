@@ -1,6 +1,7 @@
 #pragma once
 #include <ostream>
-#include "ostream_helpers.hpp"
+#include "ostream_helpers/ostream_helpers.hpp"
+
 #include "types.hpp"
 #include "graph.hpp"
 

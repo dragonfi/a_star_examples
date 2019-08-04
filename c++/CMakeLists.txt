@@ -4,6 +4,8 @@ project (AStar)
 
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "src/*.cpp")
 
+include_directories(src)
+
 add_executable(AStar src/main.cpp ${sources})
 
 SET(CMAKE_CXX_COMPILER "g++")

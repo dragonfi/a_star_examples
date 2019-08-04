@@ -1,5 +1,6 @@
 #include <ostream>
 #include <vector>
+
 #include "graph.hpp"
 #include "types.hpp"
 #include "vec2.hpp"

@@ -1,6 +1,7 @@
 #pragma once
 #include <ostream>
 #include <vector>
+
 #include "types.hpp"
 #include "vec2.hpp"
 
