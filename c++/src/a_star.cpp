@@ -6,9 +6,9 @@
 #include "a_star.hpp"
 
 namespace pathing {
+    using namespace ostream_helpers;
     std::ostream& operator<<(std::ostream& output, const pathing::Path& path) {
-        output << std::vector<int>();
-        output << "Path(" << path.weight << ": " << path.nodes << ")";
+        output << "Path(" << path.weight << ": " << StreamableVector<Index>{path.nodes} << ")";
         return output;
     }
 
