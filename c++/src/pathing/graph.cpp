@@ -24,7 +24,7 @@ namespace pathing {
     Weight IndexedGraph::distance(Index node1, Index node2) const {
         return euclidean_distance(nodes[node1], nodes[node2]);
     }
-    size_t IndexedGraph::nodeCount() const {
+    Index IndexedGraph::nodeCount() const {
         return nodes.size();
     }
 }

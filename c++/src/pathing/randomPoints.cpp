@@ -1,7 +1,9 @@
-#include <cmath>
+#include <stdlib.h>
 #include <vector>
 
+#include "types.hpp"
 #include "randomPoints.hpp"
+#include "vec2.hpp"
 #include "graph.hpp"
 
 namespace pathing {

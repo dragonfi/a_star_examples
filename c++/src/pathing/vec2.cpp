@@ -1,7 +1,7 @@
 #include <cmath>
-#include <vector>
 
-#include "randomPoints.hpp"
+#include "types.hpp"
+#include "vec2.hpp"
 
 namespace pathing {
     Weight euclidean_distance(Vec2 v1, Vec2 v2) {

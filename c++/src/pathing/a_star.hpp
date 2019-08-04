@@ -1,12 +1,12 @@
 #pragma once
 #include <ostream>
-#include "ostream_helpers/ostream_helpers.hpp"
+#include <utility>
+#include <vector>
 
 #include "types.hpp"
 #include "graph.hpp"
 
 namespace pathing {
-    using namespace ostream_helpers;
 
     struct Path {
         Weight weight;

@@ -1,10 +1,11 @@
-#include <vector>
-#include <cmath>
-#include <iostream>
-#include <algorithm>
 
-#include "pathing/randomPoints.hpp"
+#include <iostream>
+#include <stddef.h>
+#include <vector>
+
 #include "pathing/a_star.hpp"
+#include "pathing/randomPoints.hpp"
+#include "pathing/graph.hpp"
 
 int main() {
     auto points = pathing::randomPoints(1000, {0, 0}, {100, 100});

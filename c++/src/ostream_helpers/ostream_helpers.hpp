@@ -1,5 +1,7 @@
 #pragma once
+#include <stddef.h>
 #include <ostream>
+#include <utility>
 #include <vector>
 
 namespace ostream_helpers {

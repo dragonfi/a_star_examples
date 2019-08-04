@@ -4,6 +4,7 @@
 
 #include "ostream_helpers/ostream_helpers.hpp"
 
+#include "graph.hpp"
 #include "types.hpp"
 #include "a_star.hpp"
 
