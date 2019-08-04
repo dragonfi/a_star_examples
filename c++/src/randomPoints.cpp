@@ -26,7 +26,7 @@ namespace pathing {
                     continue;
                 }
                 if (distance < threshold) {
-                    graph.addEdge(Edge<Index>{i, j, distance});
+                    graph.addEdge(Edge{i, j, distance});
                 }
             }
         }

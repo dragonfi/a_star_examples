@@ -1,8 +1,17 @@
 #include <cmath>
 #include <algorithm>
+#include <ostream>
+#include "ostream_helpers.hpp"
+#include "types.hpp"
 #include "a_star.hpp"
 
 namespace pathing {
+    std::ostream& operator<<(std::ostream& output, const pathing::Path& path) {
+        output << std::vector<int>();
+        output << "Path(" << path.weight << ": " << path.nodes << ")";
+        return output;
+    }
+
     struct FirstIsLargerWithDistance {
         const IndexedGraph& graph;
         Index dest;
@@ -16,11 +25,10 @@ namespace pathing {
         }
     };
 
-    using Candidate = std::pair<Index, Path<Index>>;
     AStar::AStar(IndexedGraph graph): graph(graph) {};
 
-    Path<Index> AStar::shortest_path(Index source, Index dest) {
-        std::vector<std::pair<bool, Path<Index>>> explored(graph.nodeCount(), {false, {MAXFLOAT, {}}});
+    Path AStar::shortest_path(Index source, Index dest) {
+        std::vector<std::pair<bool, Path>> explored(graph.nodeCount(), {false, {MAXFLOAT, {}}});
         std::vector<Candidate> candidates;
         candidates.push_back({source, {0, {source}}});
 
@@ -31,7 +39,7 @@ namespace pathing {
             Candidate candidate = candidates.back();
             candidates.pop_back();
             Index node = candidate.first;
-            Path<Index> path = candidate.second;
+            Path path = candidate.second;
             if (node == dest) {
                 return path;
             }

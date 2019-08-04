@@ -3,6 +3,10 @@
 #include <vector>
 
 namespace ostream_helpers {
+
+};
+
+namespace std {
     template<class T>
     std::ostream& operator<<(std::ostream& out, const std::vector<T>& v) {
         out << "[";
