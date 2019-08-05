@@ -16,6 +16,7 @@ namespace graphics {
     public:
         SDLException() {
             m_what = SDL_GetError();
+            SDL_ClearError();
         }
         const char * what() const throw () {
             return m_what;
