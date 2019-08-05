@@ -82,14 +82,12 @@ namespace graphics {
         Window& operator=(const Window&) = delete; // no assignments
         Window& operator=(Window&&) = delete; // no move assignment
 
-        void clear() {
-        }
         void swap() {
             SDL_GL_SwapWindow(window);
         }
     private:
-        SDL_Window* window;
-        SDL_GLContext* context;
+        SDL_Window* window = nullptr;
+        SDL_GLContext* context = nullptr;
 
         void try_setting_attribute(SDL_GLattr attr, int value) {
             if (SDL_GL_SetAttribute(attr, value) != 0) {
@@ -117,8 +115,8 @@ namespace graphics {
 
 bool handle_key_down(const SDL_Event& event, graphics::Renderer& renderer) {
     const graphics::Color red(1.0, 0.0, 0.0);
-    const graphics::Color green(1.0, 0.0, 0.0);
-    const graphics::Color blue(1.0, 0.0, 0.0);
+    const graphics::Color green(0.0, 1.0, 0.0);
+    const graphics::Color blue(0.0, 0.0, 1.0);
     switch (event.key.keysym.sym) {
         case SDLK_ESCAPE:
             return false;
@@ -152,12 +150,13 @@ void main_loop(graphics::Renderer renderer) {
                     running = false;
                     break;
                 case SDL_KEYDOWN:
-                    handle_key_down(event, renderer);
+                    running = handle_key_down(event, renderer);
                     break;
                 default:
                     break;
             }
         }
+        renderer.swap();
     }
 }
 
@@ -168,6 +167,8 @@ int main() {
     graphics::Color black(0.0, 0.0, 0.0);
     renderer.clear(black);
     renderer.swap();
+
+    main_loop(renderer);
 
     // main
     auto points = pathing::randomPoints(1000, {0, 0}, {100, 100});
