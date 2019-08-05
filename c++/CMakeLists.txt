@@ -4,9 +4,32 @@ project (AStar)
 
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "src/*.cpp")
 
-include_directories(src)
+SET(inc "")
+SET(lib "")
+
+find_package(SDL2 REQUIRED)
+SET(inc ${inc} ${SDL2_INCLUDE_DIRS})
+SET(lib ${lib} ${SDL2_LIBRARIES})
+
+find_package(OpenGL REQUIRED)
+SET(inc ${inc} ${OPENGL_INCLUDE_DIR})
+SET(lib ${lib} ${OPENGL_LIBRARIES})
+
+find_package(GLEW REQUIRED)
+SET(inc ${inc} ${GLEW_INCLUDE_DIR})
+SET(lib ${lib} ${GLEW_LIBRARIES})
+
+#find_package(SDL2_image REQUIRED)
+#SET(inc ${inc} ${SDL_IMAGE_INCLUDE_DIR})
+#SET(lib ${lib} ${SDL2_IMAGE_LIBRARIES})
+
+message(STATUS "inc: ${inc}")
+message(STATUS "lib: ${lib}")
 
 add_executable(AStar src/main.cpp ${sources})
+target_include_directories(AStar PUBLIC src/ ${inc})
+target_link_libraries(AStar ${lib})
+
 
 SET(CMAKE_CXX_COMPILER "g++")
 
