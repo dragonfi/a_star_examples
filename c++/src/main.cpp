@@ -25,6 +25,15 @@ namespace graphics {
         const char * m_what;
     };
 
+    struct Color {
+        Color(float r, float g, float b, float a = 1.0): r(r), g(g), b(b), a(a) {
+        }
+        float r;
+        float g;
+        float b;
+        float a;
+    };
+
     class Window {
     public:    
         Window() {
@@ -34,7 +43,7 @@ namespace graphics {
             }
 
             window = SDL_CreateWindow(
-                "A Star", 
+                "A Star",
                 SDL_WINDOWPOS_CENTERED,
                 SDL_WINDOWPOS_CENTERED,
                 512,
@@ -68,9 +77,12 @@ namespace graphics {
             SDL_Quit();
         }
 
+        Window(const Window&) = delete; // no copies
+        Window(Window&&) = delete; // no move
+        Window& operator=(const Window&) = delete; // no assignments
+        Window& operator=(Window&&) = delete; // no move assignment
+
         void clear() {
-            glClearColor(0.0, 0.0, 0.0, 1.0);
-            glClear(GL_COLOR_BUFFER_BIT);
         }
         void swap() {
             SDL_GL_SwapWindow(window);
@@ -85,13 +97,77 @@ namespace graphics {
             }
         }
     };
+
+    class Renderer {
+    public:
+        Renderer(Window& window): m_window(window) {
+        }
+        void clear(Color color) {
+            glClearColor(color.r, color.g, color.b, color.a);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+
+        void swap() {
+            m_window.swap();
+        }
+    private:
+        Window& m_window;
+    };
+}
+
+bool handle_key_down(const SDL_Event& event, graphics::Renderer& renderer) {
+    const graphics::Color red(1.0, 0.0, 0.0);
+    const graphics::Color green(1.0, 0.0, 0.0);
+    const graphics::Color blue(1.0, 0.0, 0.0);
+    switch (event.key.keysym.sym) {
+        case SDLK_ESCAPE:
+            return false;
+            break;
+        case SDLK_r:
+            renderer.clear(red);
+            renderer.swap();
+            break;
+        case SDLK_g:
+            renderer.clear(green);
+            renderer.swap();
+            break;
+        case SDLK_b:
+            renderer.clear(blue);
+            renderer.swap();
+            break;
+        default:
+            break;
+    }
+    return true;
+}
+
+void main_loop(graphics::Renderer renderer) {
+    bool running = true;
+
+    while (running) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    running = false;
+                    break;
+                case SDL_KEYDOWN:
+                    handle_key_down(event, renderer);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 }
 
 int main() {
     // initi video
     graphics::Window window;
-    window.clear();
-    window.swap();
+    graphics::Renderer renderer(window);
+    graphics::Color black(0.0, 0.0, 0.0);
+    renderer.clear(black);
+    renderer.swap();
 
     // main
     auto points = pathing::randomPoints(1000, {0, 0}, {100, 100});
