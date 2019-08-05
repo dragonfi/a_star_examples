@@ -4,114 +4,12 @@
 #include <vector>
 #include <exception>
 
+#include <SDL2/SDL.h>
+
 #include "pathing/a_star.hpp"
 #include "pathing/randomPoints.hpp"
 #include "pathing/graph.hpp"
-
-#include <SDL2/SDL.h>
-#include <GL/glew.h>
-
-namespace graphics {
-    class SDLException: public std::exception {
-    public:
-        SDLException() {
-            m_what = SDL_GetError();
-            SDL_ClearError();
-        }
-        const char * what() const throw () {
-            return m_what;
-        }
-    private:
-        const char * m_what;
-    };
-
-    struct Color {
-        Color(float r, float g, float b, float a = 1.0): r(r), g(g), b(b), a(a) {
-        }
-        float r;
-        float g;
-        float b;
-        float a;
-    };
-
-    class Window {
-    public:    
-        Window() {
-            if (SDL_Init(SDL_INIT_VIDEO) < 0)
-            {
-                throw SDLException();
-            }
-
-            window = SDL_CreateWindow(
-                "A Star",
-                SDL_WINDOWPOS_CENTERED,
-                SDL_WINDOWPOS_CENTERED,
-                512,
-                512,
-                SDL_WINDOW_OPENGL
-            );
-
-            if (window == nullptr) {
-                throw SDLException();
-            }
-
-            // ES for mobile, CORE for new
-            try_setting_attribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-            try_setting_attribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            try_setting_attribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-            try_setting_attribute(SDL_GL_DOUBLEBUFFER, 1);
-
-            SDL_GLContext context = SDL_GL_CreateContext(window);
-            if (context == nullptr) {
-                throw SDLException();
-            };
-
-            glewExperimental = GL_TRUE;
-            glewInit();
-
-            SDL_GL_SetSwapInterval(1);
-        }
-        ~Window() {
-            SDL_GL_DeleteContext(context);
-            SDL_DestroyWindow(window);
-            SDL_Quit();
-        }
-
-        Window(const Window&) = delete; // no copies
-        Window(Window&&) = delete; // no move
-        Window& operator=(const Window&) = delete; // no assignments
-        Window& operator=(Window&&) = delete; // no move assignment
-
-        void swap() {
-            SDL_GL_SwapWindow(window);
-        }
-    private:
-        SDL_Window* window = nullptr;
-        SDL_GLContext* context = nullptr;
-
-        void try_setting_attribute(SDL_GLattr attr, int value) {
-            if (SDL_GL_SetAttribute(attr, value) != 0) {
-                throw "Failed to init OpenGL\n";
-            }
-        }
-    };
-
-    class Renderer {
-    public:
-        Renderer(Window& window): m_window(window) {
-        }
-        void clear(Color color) {
-            glClearColor(color.r, color.g, color.b, color.a);
-            glClear(GL_COLOR_BUFFER_BIT);
-        }
-
-        void swap() {
-            m_window.swap();
-        }
-    private:
-        Window& m_window;
-    };
-}
+#include "graphics/glWindow.hpp"
 
 bool handle_key_down(const SDL_Event& event, graphics::Renderer& renderer) {
     const graphics::Color red(1.0, 0.0, 0.0);
