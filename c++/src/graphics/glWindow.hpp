@@ -4,6 +4,8 @@
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 
+#include "types.hpp"
+
 namespace graphics {
     class SDLException: public std::exception {
     public:
@@ -11,12 +13,6 @@ namespace graphics {
         const char * what() const throw ();
     private:
         const char * m_what;
-    };
-
-    struct Color {
-        GLfloat r, g, b, a;
-        static const GLsizei length = 4;
-        static const GLsizei mem_size = length * sizeof(GLfloat);
     };
 
     class Window {
