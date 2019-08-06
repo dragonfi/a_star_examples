@@ -11,7 +11,7 @@ namespace graphics {
         return m_what;
     }
 
-    Window::Window() {
+    Window::Window(uint width, uint height) {
         if (SDL_Init(SDL_INIT_VIDEO) < 0)
         {
             throw SDLException();
@@ -21,8 +21,8 @@ namespace graphics {
             "A Star",
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
-            512,
-            512,
+            width,
+            height,
             SDL_WINDOW_OPENGL
         );
 

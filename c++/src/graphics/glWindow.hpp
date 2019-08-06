@@ -17,7 +17,7 @@ namespace graphics {
 
     class Window {
     public:
-        Window();
+        Window(uint width = 512, uint height = 512);
         ~Window();
 
         Window(const Window&) = delete; // no copies
