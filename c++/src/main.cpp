@@ -143,6 +143,56 @@ void render_square(graphics::Renderer& renderer) {
         load_file("shaders/basic.vert"), load_file("shaders/basic.frag")
     );
     shader.use();
+
+    GLuint positionAttributeIndex = 0;
+    GLuint colorAttributeIndex = 1;
+
+    const int points = 4;
+    const int floatsPerPoint = 3;
+    const int floatsPerColor = 4;
+    const GLfloat diamond[points][floatsPerPoint] = {
+        { -0.5,  0.5,  0.5 }, // Top left
+        {  0.5,  0.5,  0.5 }, // Top right
+        {  0.5, -0.5,  0.5 }, // Bottom right 
+        { -0.5, -0.5,  0.5 }, // Bottom left
+    };
+
+
+    const GLfloat colors[points][floatsPerColor] = {
+        { 0.0, 1.0, 0.0, 1.0 }, // Top left
+        { 1.0, 1.0, 0.0, 1.0  }, // Top right
+        { 1.0, 0.0, 0.0, 1.0  }, // Bottom right 
+        { 0.0, 0.0, 1.0, 1.0  }, // Bottom left
+    };
+
+    GLuint vbo[2], vao[1];
+    glGenBuffers(2, vbo);
+    glGenVertexArrays(1, vao);
+
+    glBindVertexArray(vao[0]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, ( points * floatsPerPoint) * sizeof(GLfloat), diamond, GL_STATIC_DRAW);
+    glVertexAttribPointer(positionAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(positionAttributeIndex);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, ( points * floatsPerColor) * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+    glVertexAttribPointer(colorAttributeIndex, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(colorAttributeIndex);
+
+    shader.use();
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // Render
+
+    glClearColor(0.5, 0.5, 0.5, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	// Invoke glDrawArrays telling that our data is a line loop and we want to draw 2-4 vertexes
+	glDrawArrays(GL_LINE_LOOP, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 bool handle_key_down(const SDL_Event& event, graphics::Renderer& renderer) {
@@ -188,6 +238,7 @@ void main_loop(graphics::Renderer renderer) {
                     break;
             }
         }
+        render_square(renderer);
         renderer.swap();
     }
 }
@@ -199,8 +250,6 @@ int main() {
     graphics::Color black(0.0, 0.0, 0.0);
     renderer.clear(black);
     renderer.swap();
-
-    render_square(renderer);
 
     main_loop(renderer);
 
