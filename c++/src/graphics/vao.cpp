@@ -12,8 +12,8 @@ namespace graphics {
         const std::vector<Color>& colors)
         : m_shape(shape)
     {
-        glGenVertexArrays(1, vao);
-        glGenBuffers(2, vbo);
+        glGenVertexArrays(vao_count, vao);
+        glGenBuffers(vbo_count, vbo);
         set_points(points);
         set_colors(colors);
     }
@@ -26,8 +26,8 @@ namespace graphics {
     }
 
     StaticVAO::~StaticVAO() {
-        glDeleteBuffers(2, vbo);
-        glDeleteVertexArrays(1, vao);
+        glDeleteBuffers(vbo_count, vbo);
+        glDeleteVertexArrays(vao_count, vao);
     }
 
     void StaticVAO::draw() {
