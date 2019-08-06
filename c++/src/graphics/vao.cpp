@@ -18,11 +18,23 @@ namespace graphics {
         set_colors(colors);
     }
 
+    StaticVAO::StaticVAO(StaticVAO&& other) {
+        std::swap(vbo, other.vbo);
+        std::swap(vao, other.vao);
+        vertex_count = other.vertex_count;
+        m_shape = other.m_shape;
+    }
+
+    StaticVAO::~StaticVAO() {
+        glDeleteBuffers(2, vbo);
+        glDeleteVertexArrays(1, vao);
+    }
+
     void StaticVAO::draw() {
         draw(m_shape);
     }
 
-    void StaticVAO::draw(GLuint shape) {
+    void StaticVAO::draw(GLuint shape) const {
         glBindVertexArray(vao[0]);
 
         glEnableVertexAttribArray(position_attribute_index);
@@ -58,6 +70,5 @@ namespace graphics {
         if (static_cast<size_t>(vertex_count) != colors.size()) {
             throw std::runtime_error("Vertex count mismatch");
         }
-
     }
 }

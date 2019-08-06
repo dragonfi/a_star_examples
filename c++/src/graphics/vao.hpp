@@ -13,11 +13,18 @@ namespace graphics {
             const std::vector<Color>& colors);
         void draw();
 
-        void draw(GLuint shape);
+        StaticVAO(const StaticVAO& other) = delete;
+        StaticVAO(StaticVAO&& other); // implemented
+        StaticVAO& operator=(const StaticVAO&) = delete;
+        StaticVAO& operator=(StaticVAO&&) = delete;
+
+        ~StaticVAO();
+
+        void draw(GLuint shape) const;
     private:
         void set_points(const std::vector<Point>& points);
         void set_colors(const std::vector<Color>& colors);
-        GLuint vbo[2], vao[1];
+        GLuint vbo[2] = {0, 0}, vao[1] = {0};
         GLuint m_shape;
         GLsizei vertex_count = 0;
         static const int position_attribute_index = 0;

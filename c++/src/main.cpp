@@ -101,7 +101,7 @@ void main_loop(graphics::Scene scene) {
         // renderer.swap();
         scene.renderer.clear(graphics::Color{0.0, 0.0, 0.0, 1.0});
         scene.shader.use();
-        for(graphics::StaticVAO vao : scene.vaos) {
+        for(graphics::StaticVAO& vao : scene.vaos) {
             vao.draw();
         }
         scene.renderer.swap();
