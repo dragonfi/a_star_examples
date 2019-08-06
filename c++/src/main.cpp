@@ -29,7 +29,7 @@ std::string load_file(std::string file_name) {
 }
 
 void render_square(graphics::Renderer& renderer) {
-    graphics::ShaderProgram shader = graphics::ShaderProgram(
+    graphics::ShaderProgram shader(
         load_file("shaders/basic.vert"), load_file("shaders/basic.frag")
     );
 
@@ -189,7 +189,7 @@ int main() {
     pathing::PathWithMeta meta = aStar.shortest_path_with_metadata(500, 700);
     std::cout << meta.path << std::endl;
 
-    graphics::ShaderProgram shader = graphics::ShaderProgram(
+    graphics::ShaderProgram shader(
         load_file("shaders/basic.vert"), load_file("shaders/basic.frag")
     );
 

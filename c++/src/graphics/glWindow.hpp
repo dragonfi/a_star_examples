@@ -18,12 +18,13 @@ namespace graphics {
     class Window {
     public:
         Window(uint width = 512, uint height = 512);
-        ~Window();
 
         Window(const Window&) = delete; // no copies
         Window(Window&&) = delete; // no move
         Window& operator=(const Window&) = delete; // no assignments
         Window& operator=(Window&&) = delete; // no move assignment
+
+        ~Window();
 
         void swap();
     private:

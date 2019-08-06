@@ -24,8 +24,15 @@ namespace graphics {
     class Shader {
     public:
         Shader(const std::string& src, GLuint shader_type);
-        GLuint id();
+
+        Shader(const Shader&) = delete;
+        Shader(Shader&&) = delete;
+        Shader& operator=(const Shader&) = delete;
+        Shader& operator=(Shader&&) = delete;
+
         ~Shader();
+
+        GLuint id();
     private:
         GLuint shader = 0;
     };
@@ -33,8 +40,15 @@ namespace graphics {
     class ShaderProgram {
     public:
         ShaderProgram(const std::string& vert, const std::string& frag);
-        void use();
+
+        ShaderProgram(const ShaderProgram&) = delete;
+        ShaderProgram(ShaderProgram&&) = delete;
+        ShaderProgram& operator=(const ShaderProgram&) = delete;
+        ShaderProgram& operator=(ShaderProgram&&) = delete;
+
         ~ShaderProgram();
+
+        void use();
     private:
         GLuint shaderProgram = 0;
         Shader vertexShader;
