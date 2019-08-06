@@ -80,6 +80,17 @@ bool handle_key_down(const SDL_Event& event, graphics::Scene& scene) {
     return true;
 }
 
+void handle_resize(const int width, const int height) {
+    int viewport_size = width < height ? width : height;
+    if (viewport_size < width) {
+        int offset = (width - viewport_size) / 2;
+        glViewport(offset, 0, viewport_size, viewport_size);
+    } else {
+        int offset = (height - viewport_size) / 2;
+        glViewport(0, offset, viewport_size, viewport_size);
+    }
+}
+
 void main_loop(graphics::Scene scene) {
     bool running = true;
 
@@ -92,6 +103,15 @@ void main_loop(graphics::Scene scene) {
                     break;
                 case SDL_KEYDOWN:
                     running = handle_key_down(event, scene);
+                    break;
+                case SDL_WINDOWEVENT:
+                    switch(event.window.event) {
+                        case SDL_WINDOWEVENT_RESIZED:
+                            handle_resize(event.window.data1, event.window.data2);
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 default:
                     break;
