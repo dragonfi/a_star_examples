@@ -14,7 +14,6 @@ namespace graphics {
         GLfloat x, y, z;
         static const GLsizei length = 3;
         static const GLsizei mem_size = length * sizeof(GLfloat);
-
     };
 
     class Renderer;

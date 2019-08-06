@@ -2,7 +2,6 @@
 #include <iostream>
 #include <stddef.h>
 #include <vector>
-#include <exception>
 #include <algorithm>
 
 #include <SDL2/SDL.h>
