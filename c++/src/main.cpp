@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <vector>
 #include <exception>
+#include <algorithm>
 
 #include <SDL2/SDL.h>
 
@@ -245,25 +246,23 @@ void render_square(graphics::Renderer& renderer) {
 
 }
 
-bool handle_key_down(const SDL_Event& event, graphics::Renderer& renderer) {
-    const graphics::Color red{1.0, 0.0, 0.0, 1.0};
-    const graphics::Color green{0.0, 1.0, 0.0, 1.0};
-    const graphics::Color blue{0.0, 0.0, 1.0, 1.0};
+std::vector<graphics::StaticVAO> vaos_from_meta(pathing::PathWithMeta, pathing::IndexedGraph);
+
+std::vector<graphics::StaticVAO> generate_new_graph() {
+    auto points = pathing::randomPoints(1000, {-1.0, -1.0}, {2.0, 2.0});
+    auto graph = pathing::connectPointsWithinThreshold(points, 0.08);
+    pathing::AStar aStar(graph);
+    pathing::PathWithMeta meta = aStar.shortest_path_with_metadata(500, 700);
+    return vaos_from_meta(meta, graph);
+}
+
+bool handle_key_down(const SDL_Event& event, graphics::Scene& scene) {
     switch (event.key.keysym.sym) {
         case SDLK_ESCAPE:
             return false;
             break;
         case SDLK_r:
-            renderer.clear(red);
-            renderer.swap();
-            break;
-        case SDLK_g:
-            renderer.clear(green);
-            renderer.swap();
-            break;
-        case SDLK_b:
-            renderer.clear(blue);
-            renderer.swap();
+            scene.vaos = generate_new_graph();
             break;
         default:
             break;
@@ -282,7 +281,7 @@ void main_loop(graphics::Scene scene) {
                     running = false;
                     break;
                 case SDL_KEYDOWN:
-                    running = handle_key_down(event, scene.renderer);
+                    running = handle_key_down(event, scene);
                     break;
                 default:
                     break;
@@ -299,29 +298,9 @@ void main_loop(graphics::Scene scene) {
     }
 }
 
-int main() {
-    // initi video
-    graphics::Window window;
-    graphics::Renderer renderer(window);
-    graphics::Color black{0.0, 0.0, 0.0, 1.0};
-    renderer.clear(black);
-    renderer.swap();
-
-    srand (time(NULL));
-
-    auto points = pathing::randomPoints(1000, {-1.0, -1.0}, {2.0, 2.0});
-    auto graph = pathing::connectPointsWithinThreshold(points, 0.08);
-    pathing::AStar aStar(graph);
-    pathing::PathWithMeta meta = aStar.shortest_path_with_metadata(500, 700);
-    pathing::Path visualized_path = meta.path;
-    std::cout << visualized_path << std::endl;
-
-    graphics::ShaderProgram shader = graphics::ShaderProgram(
-        load_file("shaders/basic.vert"), load_file("shaders/basic.frag")
-    );
-
+std::vector<graphics::StaticVAO> vaos_from_meta(pathing::PathWithMeta meta, pathing::IndexedGraph graph) {
     std::vector<graphics::StaticVAO> vaos;
-
+    // edges
     {
         std::vector<graphics::Point> positions;
         std::vector<graphics::Color> colors;
@@ -339,52 +318,11 @@ int main() {
         );
     }
 
+    // path
     {
         std::vector<graphics::Point> positions;
         std::vector<graphics::Color> colors;
-
-        for(auto node: graph.nodes()) {
-            positions.push_back({static_cast<GLfloat>(node.x), static_cast<GLfloat>(node.y), 0.0});
-            colors.push_back({0.5, 0.5, 0.5, 1.0});
-        }
-
-        vaos.push_back(
-            graphics::StaticVAO(GL_POINTS, positions, colors)
-        );
-    }
-
-    {
-        std::vector<graphics::Point> positions;
-        std::vector<graphics::Color> colors;
-        for(pathing::Index index: meta.explored) {
-            pathing::Vec2 node = graph.nodes()[index];
-            positions.push_back({static_cast<GLfloat>(node.x), static_cast<GLfloat>(node.y), 0.0});
-            colors.push_back({0.8, 0.0, 0.8, 1.0});
-        }
-
-        vaos.push_back(
-            graphics::StaticVAO(GL_POINTS, positions, colors)
-        );
-    }
-
-    {
-        std::vector<graphics::Point> positions;
-        std::vector<graphics::Color> colors;
-        for(pathing::Index index: meta.candidates) {
-            pathing::Vec2 node = graph.nodes()[index];
-            positions.push_back({static_cast<GLfloat>(node.x), static_cast<GLfloat>(node.y), 0.0});
-            colors.push_back({0.0, 0.8, 0.8, 1.0});
-        }
-
-        vaos.push_back(
-            graphics::StaticVAO(GL_POINTS, positions, colors)
-        );
-    }
-
-    {
-        std::vector<graphics::Point> positions;
-        std::vector<graphics::Color> colors;
-        for(pathing::Index index: visualized_path.nodes) {
+        for(pathing::Index index: meta.path.nodes) {
             pathing::Vec2 node = graph.nodes()[index];
             positions.push_back({static_cast<GLfloat>(node.x), static_cast<GLfloat>(node.y), 0.0});
             colors.push_back({1.0, 1.0, 0.0, 1.0});
@@ -395,18 +333,58 @@ int main() {
         );
     }
 
+    // nodes
     {
         std::vector<graphics::Point> positions;
         std::vector<graphics::Color> colors;
-        pathing::Vec2 start = graph.nodes()[500];
-        pathing::Vec2 stop = graph.nodes()[700];
 
-        positions.push_back({static_cast<GLfloat>(start.x), static_cast<GLfloat>(start.y), 0.0});
-        positions.push_back({static_cast<GLfloat>(stop.x), static_cast<GLfloat>(stop.y), 0.0});
-        colors.push_back({0.0, 1.0, 0.0, 1.0});
-        colors.push_back({1.0, 0.0, 0.0, 1.0});
-        vaos.push_back(graphics::StaticVAO(GL_POINTS, positions, colors));
+        const std::vector<pathing::Vec2> nodes = graph.nodes();
+        for(size_t i = 0; i < nodes.size(); i++) {
+            positions.push_back({static_cast<GLfloat>(nodes[i].x), static_cast<GLfloat>(nodes[i].y), 0.0});
+            if (i == 500) {
+                colors.push_back({0.0, 1.0, 0.0, 1.0});
+            } else if (i == 700) {
+                colors.push_back({1.0, 0.0, 0.0, 1.0});
+            } else if (std::find(meta.path.nodes.begin(), meta.path.nodes.end(), i) != meta.path.nodes.end()) {
+                colors.push_back({1.0, 1.0, 1.0, 1.0});
+            } else if (std::find(meta.candidates.begin(), meta.candidates.end(), i) != meta.candidates.end()) {
+                colors.push_back({0.0, 0.8, 0.8, 1.0});
+            } else if (std::find(meta.explored.begin(), meta.explored.end(), i) != meta.explored.end()) {
+                colors.push_back({0.8, 0.0, 0.8, 1.0});
+            } else {
+                colors.push_back({0.5, 0.5, 0.5, 1.0});
+            }
+        }
+
+        vaos.push_back(
+            graphics::StaticVAO(GL_POINTS, positions, colors)
+        );
     }
+
+    return vaos;
+}
+
+int main() {
+    // initi video
+    graphics::Window window;
+    graphics::Renderer renderer(window);
+    graphics::Color black{0.0, 0.0, 0.0, 1.0};
+    renderer.clear(black);
+    renderer.swap();
+
+    srand (time(NULL));
+
+    auto points = pathing::randomPoints(1000, {-1.0, -1.0}, {2.0, 2.0});
+    auto graph = pathing::connectPointsWithinThreshold(points, 0.08);
+    pathing::AStar aStar(graph);
+    pathing::PathWithMeta meta = aStar.shortest_path_with_metadata(500, 700);
+    std::cout << meta.path << std::endl;
+
+    graphics::ShaderProgram shader = graphics::ShaderProgram(
+        load_file("shaders/basic.vert"), load_file("shaders/basic.frag")
+    );
+
+    std::vector<graphics::StaticVAO> vaos = vaos_from_meta(meta, graph);
 
     glPointSize(3);
     glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
