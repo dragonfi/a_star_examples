@@ -175,7 +175,6 @@ std::vector<graphics::StaticVAO> vaos_from_meta(pathing::PathWithMeta meta, path
 }
 
 int main() {
-    // initi video
     graphics::Window window;
     graphics::Renderer renderer(window);
     graphics::Color black{0.0, 0.0, 0.0, 1.0};
@@ -207,9 +206,7 @@ int main() {
 
     main_loop(scene);
 
-    // main
-
-
+    // stress test
 
     /* for(size_t j = 0; j < points.size(); j++) {
         //std::cout << j << " ";
