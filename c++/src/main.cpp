@@ -11,6 +11,8 @@
 #include "pathing/graph.hpp"
 #include "graphics/glWindow.hpp"
 
+#include "ostream_helpers/ostream_helpers.hpp"
+
 
 #include<fstream>
 #include<sstream>
@@ -141,7 +143,9 @@ namespace graphics {
 
     class StaticVAO {
     public:
-        StaticVAO(const std::vector<Point>& points, const std::vector<Color>& colors) {
+        StaticVAO(GLuint shape, const std::vector<Point>& points, const std::vector<Color>& colors)
+            : m_shape(shape)
+        {
             glGenVertexArrays(1, vao);
             glGenBuffers(2, vbo);
             set_points(points);
@@ -149,12 +153,16 @@ namespace graphics {
         }
 
         void draw() {
+            draw(m_shape);
+        }
+
+        void draw(GLuint shape) {
             glBindVertexArray(vao[0]);
 
             glEnableVertexAttribArray(position_attribute_index);
             glEnableVertexAttribArray(color_attribute_index);
 
-            glDrawArrays(GL_TRIANGLE_FAN, 0, vertex_count);
+            glDrawArrays(shape, 0, vertex_count);
         }
     private:
         void set_points(const std::vector<Point>& points) {
@@ -187,9 +195,17 @@ namespace graphics {
         }
 
         GLuint vbo[2], vao[1];
+        GLuint m_shape;
         GLsizei vertex_count = 0;
         static const int position_attribute_index = 0;
         static const int color_attribute_index = 1;
+    };
+
+    class Scene {
+    public:
+        Renderer& renderer;
+        ShaderProgram& shader;
+        std::vector<StaticVAO>& vaos;
     };
 }
 
@@ -221,10 +237,11 @@ void render_square(graphics::Renderer& renderer) {
         { 0.0, 0.0, 1.0, 1.0  }, // Bottom left
     };
 
-    graphics::StaticVAO square(points, colors);
+    graphics::StaticVAO square(GL_TRIANGLE_FAN, points, colors);
 
     shader.use();
-    square.draw();
+    // GL_LINES, GL_TRIANGLE_FAN, GL_LINES, GL_LINE_LOOP
+    square.draw(GL_LINE_LOOP);
 
 }
 
@@ -254,7 +271,7 @@ bool handle_key_down(const SDL_Event& event, graphics::Renderer& renderer) {
     return true;
 }
 
-void main_loop(graphics::Renderer renderer) {
+void main_loop(graphics::Scene scene) {
     bool running = true;
 
     while (running) {
@@ -265,14 +282,20 @@ void main_loop(graphics::Renderer renderer) {
                     running = false;
                     break;
                 case SDL_KEYDOWN:
-                    running = handle_key_down(event, renderer);
+                    running = handle_key_down(event, scene.renderer);
                     break;
                 default:
                     break;
             }
         }
-        render_square(renderer);
-        renderer.swap();
+        //render_square(renderer);
+        // renderer.swap();
+        scene.renderer.clear(graphics::Color{0.0, 0.0, 0.0, 1.0});
+        scene.shader.use();
+        for(graphics::StaticVAO vao : scene.vaos) {
+            vao.draw();
+        }
+        scene.renderer.swap();
     }
 }
 
@@ -284,14 +307,72 @@ int main() {
     renderer.clear(black);
     renderer.swap();
 
-    main_loop(renderer);
+    auto points = pathing::randomPoints(1000, {-1.0, -1.0}, {2.0, 2.0});
+    auto graph = pathing::connectPointsWithinThreshold(points, 0.08);
+    pathing::AStar aStar(graph);
+    pathing::Path visualized_path = aStar.shortest_path(500, 700);
+    std::cout << visualized_path << std::endl;
+
+    graphics::ShaderProgram shader = graphics::ShaderProgram(
+        load_file("shaders/basic.vert"), load_file("shaders/basic.frag")
+    );
+
+    std::vector<graphics::StaticVAO> vaos;
+
+    {
+        std::vector<graphics::Point> positions;
+        std::vector<graphics::Color> colors;
+
+        for(auto node: graph.nodes()) {
+            positions.push_back({static_cast<GLfloat>(node.x), static_cast<GLfloat>(node.y), 0.0});
+            colors.push_back({1.0, 1.0, 1.0, 1.0});
+        }
+
+        vaos.push_back(
+            graphics::StaticVAO(GL_POINTS, positions, colors)
+        );
+    }
+
+    {
+        std::vector<graphics::Point> positions;
+        std::vector<graphics::Color> colors;
+        for(pathing::Edge edge: graph.edges()) {
+            pathing::Vec2 source = graph.nodes()[edge.source];
+            pathing::Vec2 dest = graph.nodes()[edge.dest];
+            positions.push_back({static_cast<GLfloat>(source.x), static_cast<GLfloat>(source.y), 0.0});
+            positions.push_back({static_cast<GLfloat>(dest.x), static_cast<GLfloat>(dest.y), 0.0});
+            colors.push_back({0.5, 0.5, 0.5, 1.0});
+            colors.push_back({0.5, 0.5, 0.5, 1.0});
+        }
+
+        vaos.push_back(
+            graphics::StaticVAO(GL_LINES, positions, colors)
+        );
+    }
+
+    {
+        std::vector<graphics::Point> positions;
+        std::vector<graphics::Color> colors;
+        for(pathing::Index index: visualized_path.nodes) {
+            pathing::Vec2 node = graph.nodes()[index];
+            positions.push_back({static_cast<GLfloat>(node.x), static_cast<GLfloat>(node.y), 0.0});
+            colors.push_back({1.0, 1.0, 0.0, 1.0});
+        }
+
+        vaos.push_back(
+            graphics::StaticVAO(GL_LINE_STRIP, positions, colors)
+        );
+    }
+
+    graphics::Scene scene{renderer, shader, vaos};
+
+    main_loop(scene);
 
     // main
-    auto points = pathing::randomPoints(1000, {0, 0}, {100, 100});
-    auto graph = pathing::connectPointsWithinThreshold(points, 5);
-    pathing::AStar aStar(graph);
-    std::cout << aStar.shortest_path(700, 500) << std::endl;
-    for(size_t j = 0; j < points.size(); j++) {
+
+
+
+    /* for(size_t j = 0; j < points.size(); j++) {
         //std::cout << j << " ";
         auto path = aStar.shortest_path(0, j);
         //std::cout << path.nodes.size() << std::endl;
@@ -302,6 +383,6 @@ int main() {
         sum += graph.edgesFrom(i).size();
     }
     std::cout << points.size() << " " << sum << std::endl;
-
+*/
     return 0;
 }
