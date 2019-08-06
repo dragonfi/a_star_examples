@@ -40,3 +40,10 @@ SET(warning_flags "-Wall -Werror -Wfatal-errors -pedantic")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${warning_flags} ${optimization_flags} ${profile_flags}")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${profile_flags}")
 SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${profile_flags}")
+
+add_custom_command(
+    TARGET AStar POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/src/shaders $<TARGET_FILE_DIR:AStar>/shaders
+    COMMENT "Copying shaders" VERBATIM
+)
