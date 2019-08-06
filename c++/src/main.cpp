@@ -94,6 +94,7 @@ namespace graphics {
         {
             shaderProgram = glCreateProgram();
 
+            // TODO: use consts here and in VAO
             glBindAttribLocation(shaderProgram, 0, "in_position");
             glBindAttribLocation(shaderProgram, 1, "in_color");
 
@@ -125,8 +126,70 @@ namespace graphics {
         Shader fragmentShader;
     };
 
-    class VAO {
+    struct Point {
+        GLfloat x, y, z;
+        static const GLsizei length = 3;
+        static const GLsizei mem_size = length * sizeof(GLfloat);
 
+    };
+
+    // struct Color {
+    //     GLfloat r, g, b, a;
+    //     static const GLsizei length = 4;
+    //     static const GLsizei mem_size = length * sizeof(GLfloat);
+    // };
+
+    class StaticVAO {
+    public:
+        StaticVAO(const std::vector<Point>& points, const std::vector<Color>& colors) {
+            glGenVertexArrays(1, vao);
+            glGenBuffers(2, vbo);
+            set_points(points);
+            set_colors(colors);
+        }
+
+        void draw() {
+            glBindVertexArray(vao[0]);
+
+            glEnableVertexAttribArray(position_attribute_index);
+            glEnableVertexAttribArray(color_attribute_index);
+
+            glDrawArrays(GL_TRIANGLE_FAN, 0, vertex_count);
+        }
+    private:
+        void set_points(const std::vector<Point>& points) {
+            glBindVertexArray(vao[0]);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+
+            glBufferData(
+                GL_ARRAY_BUFFER, points.size() * Point::mem_size,
+                points.data(), GL_STATIC_DRAW);
+
+            glVertexAttribPointer(position_attribute_index, Point::length, GL_FLOAT, GL_FALSE, 0, 0);
+
+            vertex_count = points.size();
+
+        }
+        void set_colors(const std::vector<Color>& colors) {
+            glBindVertexArray(vao[0]);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+
+            glBufferData(
+                GL_ARRAY_BUFFER, colors.size() * Color::mem_size,
+                colors.data(), GL_STATIC_DRAW);
+
+            glVertexAttribPointer(color_attribute_index, Color::length, GL_FLOAT, GL_FALSE, 0, 0);
+
+            if (static_cast<size_t>(vertex_count) != colors.size()) {
+                throw std::runtime_error("Vertex count mismatch");
+            }
+
+        }
+
+        GLuint vbo[2], vao[1];
+        GLsizei vertex_count = 0;
+        static const int position_attribute_index = 0;
+        static const int color_attribute_index = 1;
     };
 }
 
@@ -142,15 +205,8 @@ void render_square(graphics::Renderer& renderer) {
     graphics::ShaderProgram shader = graphics::ShaderProgram(
         load_file("shaders/basic.vert"), load_file("shaders/basic.frag")
     );
-    shader.use();
 
-    GLuint positionAttributeIndex = 0;
-    GLuint colorAttributeIndex = 1;
-
-    const int points = 4;
-    const int floatsPerPoint = 3;
-    const int floatsPerColor = 4;
-    const GLfloat diamond[points][floatsPerPoint] = {
+    const std::vector<graphics::Point> points = {
         { -0.5,  0.5,  0.5 }, // Top left
         {  0.5,  0.5,  0.5 }, // Top right
         {  0.5, -0.5,  0.5 }, // Bottom right 
@@ -158,47 +214,24 @@ void render_square(graphics::Renderer& renderer) {
     };
 
 
-    const GLfloat colors[points][floatsPerColor] = {
+    const std::vector<graphics::Color> colors = {
         { 0.0, 1.0, 0.0, 1.0 }, // Top left
         { 1.0, 1.0, 0.0, 1.0  }, // Top right
         { 1.0, 0.0, 0.0, 1.0  }, // Bottom right 
         { 0.0, 0.0, 1.0, 1.0  }, // Bottom left
     };
 
-    GLuint vbo[2], vao[1];
-    glGenBuffers(2, vbo);
-    glGenVertexArrays(1, vao);
-
-    glBindVertexArray(vao[0]);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, ( points * floatsPerPoint) * sizeof(GLfloat), diamond, GL_STATIC_DRAW);
-    glVertexAttribPointer(positionAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(positionAttributeIndex);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, ( points * floatsPerColor) * sizeof(GLfloat), colors, GL_STATIC_DRAW);
-    glVertexAttribPointer(colorAttributeIndex, 4, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(colorAttributeIndex);
+    graphics::StaticVAO square(points, colors);
 
     shader.use();
+    square.draw();
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // Render
-
-    glClearColor(0.5, 0.5, 0.5, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	// Invoke glDrawArrays telling that our data is a line loop and we want to draw 2-4 vertexes
-	glDrawArrays(GL_LINE_LOOP, 0, 4);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 bool handle_key_down(const SDL_Event& event, graphics::Renderer& renderer) {
-    const graphics::Color red(1.0, 0.0, 0.0);
-    const graphics::Color green(0.0, 1.0, 0.0);
-    const graphics::Color blue(0.0, 0.0, 1.0);
+    const graphics::Color red{1.0, 0.0, 0.0, 1.0};
+    const graphics::Color green{0.0, 1.0, 0.0, 1.0};
+    const graphics::Color blue{0.0, 0.0, 1.0, 1.0};
     switch (event.key.keysym.sym) {
         case SDLK_ESCAPE:
             return false;
@@ -247,7 +280,7 @@ int main() {
     // initi video
     graphics::Window window;
     graphics::Renderer renderer(window);
-    graphics::Color black(0.0, 0.0, 0.0);
+    graphics::Color black{0.0, 0.0, 0.0, 1.0};
     renderer.clear(black);
     renderer.swap();
 

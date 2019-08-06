@@ -11,9 +11,6 @@ namespace graphics {
         return m_what;
     }
 
-    Color::Color(float r, float g, float b, float a): r(r), g(g), b(b), a(a) {
-    }
-
     Window::Window() {
         if (SDL_Init(SDL_INIT_VIDEO) < 0)
         {

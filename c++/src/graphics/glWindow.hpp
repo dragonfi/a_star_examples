@@ -14,11 +14,9 @@ namespace graphics {
     };
 
     struct Color {
-        Color(float r, float g, float b, float a = 1.0);
-        float r;
-        float g;
-        float b;
-        float a;
+        GLfloat r, g, b, a;
+        static const GLsizei length = 4;
+        static const GLsizei mem_size = length * sizeof(GLfloat);
     };
 
     class Window {
