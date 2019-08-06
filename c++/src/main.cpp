@@ -312,7 +312,8 @@ int main() {
     auto points = pathing::randomPoints(1000, {-1.0, -1.0}, {2.0, 2.0});
     auto graph = pathing::connectPointsWithinThreshold(points, 0.08);
     pathing::AStar aStar(graph);
-    pathing::Path visualized_path = aStar.shortest_path(500, 700);
+    pathing::PathWithMeta meta = aStar.shortest_path_with_metadata(500, 700);
+    pathing::Path visualized_path = meta.path;
     std::cout << visualized_path << std::endl;
 
     graphics::ShaderProgram shader = graphics::ShaderProgram(
@@ -324,10 +325,27 @@ int main() {
     {
         std::vector<graphics::Point> positions;
         std::vector<graphics::Color> colors;
+        for(pathing::Edge edge: graph.edges()) {
+            pathing::Vec2 source = graph.nodes()[edge.source];
+            pathing::Vec2 dest = graph.nodes()[edge.dest];
+            positions.push_back({static_cast<GLfloat>(source.x), static_cast<GLfloat>(source.y), 0.0});
+            positions.push_back({static_cast<GLfloat>(dest.x), static_cast<GLfloat>(dest.y), 0.0});
+            colors.push_back({0.3, 0.3, 0.3, 1.0});
+            colors.push_back({0.3, 0.3, 0.3, 1.0});
+        }
+
+        vaos.push_back(
+            graphics::StaticVAO(GL_LINES, positions, colors)
+        );
+    }
+
+    {
+        std::vector<graphics::Point> positions;
+        std::vector<graphics::Color> colors;
 
         for(auto node: graph.nodes()) {
             positions.push_back({static_cast<GLfloat>(node.x), static_cast<GLfloat>(node.y), 0.0});
-            colors.push_back({1.0, 1.0, 1.0, 1.0});
+            colors.push_back({0.5, 0.5, 0.5, 1.0});
         }
 
         vaos.push_back(
@@ -338,17 +356,28 @@ int main() {
     {
         std::vector<graphics::Point> positions;
         std::vector<graphics::Color> colors;
-        for(pathing::Edge edge: graph.edges()) {
-            pathing::Vec2 source = graph.nodes()[edge.source];
-            pathing::Vec2 dest = graph.nodes()[edge.dest];
-            positions.push_back({static_cast<GLfloat>(source.x), static_cast<GLfloat>(source.y), 0.0});
-            positions.push_back({static_cast<GLfloat>(dest.x), static_cast<GLfloat>(dest.y), 0.0});
-            colors.push_back({0.5, 0.5, 0.5, 1.0});
-            colors.push_back({0.5, 0.5, 0.5, 1.0});
+        for(pathing::Index index: meta.explored) {
+            pathing::Vec2 node = graph.nodes()[index];
+            positions.push_back({static_cast<GLfloat>(node.x), static_cast<GLfloat>(node.y), 0.0});
+            colors.push_back({0.8, 0.0, 0.8, 1.0});
         }
 
         vaos.push_back(
-            graphics::StaticVAO(GL_LINES, positions, colors)
+            graphics::StaticVAO(GL_POINTS, positions, colors)
+        );
+    }
+
+    {
+        std::vector<graphics::Point> positions;
+        std::vector<graphics::Color> colors;
+        for(pathing::Index index: meta.candidates) {
+            pathing::Vec2 node = graph.nodes()[index];
+            positions.push_back({static_cast<GLfloat>(node.x), static_cast<GLfloat>(node.y), 0.0});
+            colors.push_back({0.0, 0.8, 0.8, 1.0});
+        }
+
+        vaos.push_back(
+            graphics::StaticVAO(GL_POINTS, positions, colors)
         );
     }
 
@@ -366,6 +395,26 @@ int main() {
         );
     }
 
+    {
+        std::vector<graphics::Point> positions;
+        std::vector<graphics::Color> colors;
+        pathing::Vec2 start = graph.nodes()[500];
+        pathing::Vec2 stop = graph.nodes()[700];
+
+        positions.push_back({static_cast<GLfloat>(start.x), static_cast<GLfloat>(start.y), 0.0});
+        positions.push_back({static_cast<GLfloat>(stop.x), static_cast<GLfloat>(stop.y), 0.0});
+        colors.push_back({0.0, 1.0, 0.0, 1.0});
+        colors.push_back({1.0, 0.0, 0.0, 1.0});
+        vaos.push_back(graphics::StaticVAO(GL_POINTS, positions, colors));
+    }
+
+    glPointSize(3);
+    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_POINT_SMOOTH);
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_POLYGON_SMOOTH);
     graphics::Scene scene{renderer, shader, vaos};
 
     main_loop(scene);

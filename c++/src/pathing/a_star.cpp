@@ -9,6 +9,21 @@
 #include "a_star.hpp"
 
 namespace pathing {
+    PathWithMeta::PathWithMeta(
+            Path path_,
+            std::vector<std::pair<bool, Path>> explored_,
+            std::vector<Candidate> candidates_)
+        : path(path_){
+        for (auto pair : explored_) {
+            if (pair.first) {
+                explored.push_back(pair.second.nodes.back());
+            }
+        }
+        for (auto candidate : candidates_) {
+            candidates.push_back(candidate.first);
+        }
+    }
+
     using namespace ostream_helpers;
     std::ostream& operator<<(std::ostream& output, const pathing::Path& path) {
         output << "Path(" << path.weight << ": " << StreamableVector<Index>{path.nodes} << ")";
@@ -31,6 +46,10 @@ namespace pathing {
     AStar::AStar(IndexedGraph graph): graph(graph) {}
 
     Path AStar::shortest_path(Index source, Index dest) {
+        return shortest_path_with_metadata(source, dest, true).path;
+    }
+
+    PathWithMeta AStar::shortest_path_with_metadata(Index source, Index dest, bool skip) {
         std::vector<std::pair<bool, Path>> explored(graph.nodeCount(), {false, {MAXFLOAT, {}}});
         std::vector<Candidate> candidates;
         candidates.push_back({source, {0, {source}}});
@@ -44,7 +63,7 @@ namespace pathing {
             Index node = candidate.first;
             Path path = candidate.second;
             if (node == dest) {
-                return path;
+                return skip ? PathWithMeta(path, {}, {}) : PathWithMeta(path, explored, candidates);
             }
             if (explored[node].first || explored[node].second.weight > path.weight) {
                 explored[node] = {true, path};
@@ -59,7 +78,7 @@ namespace pathing {
                 candidates.push_back({edge.dest, {path.weight + edge.weight, new_nodes}});
             }
         }
-        return {0, {}};
+        return skip ? PathWithMeta({0, {}}, {}, {}) : PathWithMeta({0, {}}, explored, candidates);
     }
 
     void AStar::sortAndPruneCandidates(std::vector<Candidate>& candidates, Index dest) {
