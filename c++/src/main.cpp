@@ -307,6 +307,8 @@ int main() {
     renderer.clear(black);
     renderer.swap();
 
+    srand (time(NULL));
+
     auto points = pathing::randomPoints(1000, {-1.0, -1.0}, {2.0, 2.0});
     auto graph = pathing::connectPointsWithinThreshold(points, 0.08);
     pathing::AStar aStar(graph);
